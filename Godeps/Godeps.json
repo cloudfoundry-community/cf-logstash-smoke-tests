@@ -1,0 +1,29 @@
+{
+	"ImportPath": "github.com/starkandwayne/cf-logstash-smoke-tests",
+	"GoVersion": "go1.5.3",
+	"Deps": [
+		{
+			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/cf",
+			"Rev": "28076d2e08da4cfeed911136cf5bdc0175b34b33"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/runner",
+			"Rev": "28076d2e08da4cfeed911136cf5bdc0175b34b33"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.2.0-42-g07d85e6",
+			"Rev": "07d85e6b10c4289c7d612f9b13f45ba36f66d55b"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-83-gc72df92",
+			"Rev": "c72df929b80ef4930aaa75d5e486887ff2f3e06a"
+		},
+		{
+			"ImportPath": "github.com/pborman/uuid",
+			"Comment": "v1.0-6-g0f1a469",
+			"Rev": "0f1a46960a86dcdf5dd30d3e6568a497a997909f"
+		}
+	]
+}

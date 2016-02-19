@@ -1,0 +1,3 @@
+[submodule "assets/cf-env"]
+	path = assets/cf-env
+	url = https://github.com/cloudfoundry-community/cf-env
