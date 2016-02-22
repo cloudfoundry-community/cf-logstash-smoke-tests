@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/starkandwayne/cf-logstash-smoke-tests/Godeps/_workspace/src/github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/types"
 )
 
 const defaultStyle = "\x1b[0m"

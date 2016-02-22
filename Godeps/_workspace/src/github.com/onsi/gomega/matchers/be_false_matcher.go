@@ -2,7 +2,7 @@ package matchers
 
 import (
 	"fmt"
-	"github.com/starkandwayne/cf-logstash-smoke-tests/Godeps/_workspace/src/github.com/onsi/gomega/format"
+	"github.com/onsi/gomega/format"
 )
 
 type BeFalseMatcher struct {

@@ -1,6 +1,9 @@
 {
-	"ImportPath": "github.com/starkandwayne/cf-logstash-smoke-tests",
-	"GoVersion": "go1.5.3",
+	"ImportPath": "github.com/cloudfoundry-community/cf-logstash-smoke-tests",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/cf",
@@ -8,6 +11,10 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/runner",
+			"Rev": "28076d2e08da4cfeed911136cf5bdc0175b34b33"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/services",
 			"Rev": "28076d2e08da4cfeed911136cf5bdc0175b34b33"
 		},
 		{

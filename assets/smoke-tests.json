@@ -1,0 +1,11 @@
+{
+  "api":            "https://api.bosh-lite.com",
+  "apps_domain":    "bosh-lite.com",
+  "admin_user":     "admin",
+  "admin_password": "admin",
+  "service":   "logstash",
+  "plan":		  "free",
+  "space":     "test",
+  "org_name":       "test",
+  "skip_ssl_validation": true
+}

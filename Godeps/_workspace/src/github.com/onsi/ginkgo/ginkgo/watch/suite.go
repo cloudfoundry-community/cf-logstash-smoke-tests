@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/starkandwayne/cf-logstash-smoke-tests/Godeps/_workspace/src/github.com/onsi/ginkgo/ginkgo/testsuite"
+	"github.com/onsi/ginkgo/ginkgo/testsuite"
 )
 
 type Suite struct {

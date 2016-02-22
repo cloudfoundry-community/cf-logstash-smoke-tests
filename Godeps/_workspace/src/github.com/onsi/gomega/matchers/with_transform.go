@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/starkandwayne/cf-logstash-smoke-tests/Godeps/_workspace/src/github.com/onsi/gomega/internal/oraclematcher"
-	"github.com/starkandwayne/cf-logstash-smoke-tests/Godeps/_workspace/src/github.com/onsi/gomega/types"
+	"github.com/onsi/gomega/internal/oraclematcher"
+	"github.com/onsi/gomega/types"
 )
 
 type WithTransformMatcher struct {
-	Transform interface{} // input
-	// must be a function of one parameter that returns one value
-	Matcher types.GomegaMatcher
+	// input
+	Transform interface{} // must be a function of one parameter that returns one value
+	Matcher   types.GomegaMatcher
 
 	// cached value
 	transformArgType reflect.Type
