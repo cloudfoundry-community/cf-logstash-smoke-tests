@@ -1,8 +1,12 @@
 package service_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"time"
 
 	"github.com/pborman/uuid"
@@ -57,7 +61,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 	var domain string
 	var appURI string
 	var serviceName = "test-service"
-	appPath := "../assets/cf-env"
+	appPath := "/Users/vannguyen/Cloudfoundry/cf-env"
 
 	assertAppIsRunning := func(appName string) {
 		pingURI := appURI + "/some-error"
@@ -76,18 +80,18 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		testService = config.Service
 		testPlan = config.Plan
 		domain = config.AppsDomain
-		pluginPath := os.Getenv("PLUGIN_PATH")
+		//pluginPath := os.Getenv("PLUGIN_PATH")
 		Eventually(cf.Cf("login", "-a", cfAPI, "-u", cfUser, "-p", cfPass, "--skip-ssl-validation"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("create-org", testOrg), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("target", "-o", testOrg), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("create-space", testSpace), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("target", "-s", testSpace), config.ScaledTimeout(timeout)).Should(Exit(0))
-		Eventually(cf.Cf("install-plugin", pluginPath), config.ScaledTimeout(timeout)).Should(Exit(0))
+		//Eventually(cf.Cf("install-plugin", pluginPath), config.ScaledTimeout(timeout)).Should(Exit(0))
 	})
 
 	AfterSuite(func() {
-		Eventually(cf.Cf("delete-space", testSpace, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
-		Eventually(cf.Cf("delete-org", testOrg, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
+		//Eventually(cf.Cf("delete-space", testSpace, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
+		//Eventually(cf.Cf("delete-org", testOrg, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
 	})
 
 	Context("Example App Tests", func() {
@@ -98,15 +102,32 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		})
 
 		AfterEach(func() {
-			Eventually(cf.Cf("delete", appName, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
+			//Eventually(cf.Cf("delete", appName, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		})
 
 		It("Pushing app and see if it running with no errors", func() {
 			Eventually(cf.Cf("create-service", config.Service, config.Plan, serviceName), config.ScaledTimeout(timeout)).Should(Exit(0))
 			Eventually(cf.Cf("bind-service", appName, serviceName), config.ScaledTimeout(timeout)).Should(Exit(0))
 			Eventually(cf.Cf("start", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
-			Eventually(cf.Cf("start", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
 			assertAppIsRunning(appName)
+			Eventually(cf.Cf("kibana-me-logs", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
+			v2url := "cf curl /v2/apps?q=name:kibana-" + serviceName + " | jq -r \".resources[].metadata.url\""
+			getURLCommand := exec.Command("bash", "-c", v2url)
+			var out bytes.Buffer
+			getURLCommand.Stdout = &out
+			err := getURLCommand.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("kibana url: %s", out.String())
+			/*credsURL := " | jq -r .environment_json.KIBANA_"
+			getUserCommand := exec.Command("cf curl", credsURL+"USERNAME")
+			err := getUserCommand.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+			kibanaUser := getUserCommand.*/
+			//Eventually(cf.Cf("curl", v2url, "| jq -r .resources[].metadata.url"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		})
 
 	})
