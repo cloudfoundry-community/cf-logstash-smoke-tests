@@ -56,6 +56,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 	var appName string
 	var domain string
 	var appURI string
+	var serviceName = "test-service"
 	appPath := "../assets/cf-env"
 
 	assertAppIsRunning := func(appName string) {
@@ -75,11 +76,13 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		testService = config.Service
 		testPlan = config.Plan
 		domain = config.AppsDomain
+		pluginPath := os.Getenv("PLUGIN_PATH")
 		Eventually(cf.Cf("login", "-a", cfAPI, "-u", cfUser, "-p", cfPass, "--skip-ssl-validation"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("create-org", testOrg), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("target", "-o", testOrg), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("create-space", testSpace), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("target", "-s", testSpace), config.ScaledTimeout(timeout)).Should(Exit(0))
+		Eventually(cf.Cf("install-plugin", pluginPath), config.ScaledTimeout(timeout)).Should(Exit(0))
 	})
 
 	AfterSuite(func() {
@@ -99,6 +102,9 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		})
 
 		It("Pushing app and see if it running with no errors", func() {
+			Eventually(cf.Cf("create-service", config.Service, config.Plan, serviceName), config.ScaledTimeout(timeout)).Should(Exit(0))
+			Eventually(cf.Cf("bind-service", appName, serviceName), config.ScaledTimeout(timeout)).Should(Exit(0))
+			Eventually(cf.Cf("start", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
 			Eventually(cf.Cf("start", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
 			assertAppIsRunning(appName)
 		})
