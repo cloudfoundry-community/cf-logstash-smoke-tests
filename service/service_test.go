@@ -45,6 +45,17 @@ func loadConfig() (testConfig logstashConfig) {
 	return testConfig
 }
 
+func runCommandWithOutput(command string) string {
+	cmd := exec.Command("bash", "-c", command)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return out.String()
+}
+
 var config = loadConfig()
 
 var _ = Describe("CfLogstashSmokeTests", func() {
@@ -112,14 +123,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 			assertAppIsRunning(appName)
 			Eventually(cf.Cf("kibana-me-logs", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
 			v2url := "cf curl /v2/apps?q=name:kibana-" + serviceName + " | jq -r \".resources[].metadata.url\""
-			getURLCommand := exec.Command("bash", "-c", v2url)
-			var out bytes.Buffer
-			getURLCommand.Stdout = &out
-			err := getURLCommand.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("kibana url: %s", out.String())
+			fmt.Printf("kibana url: %s", runCommandWithOutput(v2url))
 			/*credsURL := " | jq -r .environment_json.KIBANA_"
 			getUserCommand := exec.Command("cf curl", credsURL+"USERNAME")
 			err := getUserCommand.Run()
