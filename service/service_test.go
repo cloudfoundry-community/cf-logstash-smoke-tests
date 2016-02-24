@@ -125,22 +125,28 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 	})
 
 	Context("Example App Tests", func() {
-		BeforeEach(func() {
+		It("Pushing app should work", func() {
 			appName = uuid.New()
 			appURI = "https://" + appName + "." + domain
 			Eventually(cf.Cf("push", appName, "-m", "126M", "-p", appPath, "-no-start"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		})
 
-		AfterEach(func() {
-			Eventually(cf.Cf("delete", appName, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
-		})
-
-		It("Pushing app and see if it running with no errors", func() {
+		It("Creating and binding service should run without errors", func() {
 			Eventually(cf.Cf("create-service", config.Service, config.Plan, serviceName), config.ScaledTimeout(timeout)).Should(Exit(0))
 			Eventually(cf.Cf("bind-service", appName, serviceName), config.ScaledTimeout(timeout)).Should(Exit(0))
 			Eventually(cf.Cf("start", appName), config.ScaledTimeout(timeout*5)).Should(Exit(0))
+		})
+
+		It("Pushing app and see if it running with no errors", func() {
 			assertAppIsRunning(appName)
+		})
+
+		It("Check if logstash is flowing data into kibana", func() {
 			assetLogstashIsRunning()
+		})
+
+		It("Delete app for clean-up", func() {
+			Eventually(cf.Cf("delete", appName, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		})
 
 	})
