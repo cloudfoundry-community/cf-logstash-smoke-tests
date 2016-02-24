@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/pborman/uuid"
@@ -72,13 +73,29 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 	var domain string
 	var appURI string
 	var serviceName = "test-service"
-	appPath := "/Users/vannguyen/Cloudfoundry/cf-env"
+	appPath := "../assets/cf-env"
 
 	assertAppIsRunning := func(appName string) {
 		pingURI := appURI + "/some-error"
 		//fmt.Println("Checking that the app is responding at url: ", pingUri)
 		Eventually(runner.Curl(pingURI, "-k"), config.ScaledTimeout(timeout*3), time.Second*1).Should(Say(""))
 		//Curl should return nothing which means it has no errors
+	}
+
+	assetLogstashIsRunning := func() {
+		//Getting Kibana Creds
+		kibanaCmd := "cf curl /v2/apps?q=name:kibana-" + serviceName + " | jq -r \".resources[].metadata.url\""
+		kibanaV2URL := strings.TrimSpace(runCommandWithOutput(kibanaCmd))
+		usernameCmd := "cf curl " + kibanaV2URL + "/env | jq -r .environment_json.KIBANA_USERNAME"
+		passwordCmd := "cf curl " + kibanaV2URL + "/env | jq -r .environment_json.KIBANA_PASSWORD"
+		kibanaUser := strings.TrimSpace(runCommandWithOutput(usernameCmd))
+		kibanaPass := strings.TrimSpace(runCommandWithOutput(passwordCmd))
+
+		kibanaURL := serviceName + "." + domain
+		kibanaCurlURL := fmt.Sprintf("%s:%s@%s", kibanaUser, kibanaPass, kibanaURL)
+
+		Eventually(runner.Curl(kibanaCurlURL, "-k"), config.ScaledTimeout(timeout*3), time.Second*1).Should(Exit(0))
+		Eventually(runner.Curl(kibanaCurlURL+"/elasticsearch/_nodes", "-k"), config.ScaledTimeout(timeout*3), time.Second*1).Should(Exit(0))
 	}
 
 	BeforeSuite(func() {
@@ -91,18 +108,18 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		testService = config.Service
 		testPlan = config.Plan
 		domain = config.AppsDomain
-		//pluginPath := os.Getenv("PLUGIN_PATH")
+		pluginPath := os.Getenv("PLUGIN_PATH")
 		Eventually(cf.Cf("login", "-a", cfAPI, "-u", cfUser, "-p", cfPass, "--skip-ssl-validation"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("create-org", testOrg), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("target", "-o", testOrg), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("create-space", testSpace), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("target", "-s", testSpace), config.ScaledTimeout(timeout)).Should(Exit(0))
-		//Eventually(cf.Cf("install-plugin", pluginPath), config.ScaledTimeout(timeout)).Should(Exit(0))
+		Eventually(cf.Cf("install-plugin", pluginPath), config.ScaledTimeout(timeout)).Should(Exit(0))
 	})
 
 	AfterSuite(func() {
-		//Eventually(cf.Cf("delete-space", testSpace, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
-		//Eventually(cf.Cf("delete-org", testOrg, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
+		Eventually(cf.Cf("delete-space", testSpace, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
+		Eventually(cf.Cf("delete-org", testOrg, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
 	})
 
 	Context("Example App Tests", func() {
@@ -113,7 +130,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		})
 
 		AfterEach(func() {
-			//Eventually(cf.Cf("delete", appName, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
+			Eventually(cf.Cf("delete", appName, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		})
 
 		It("Pushing app and see if it running with no errors", func() {
@@ -122,16 +139,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 			Eventually(cf.Cf("start", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
 			assertAppIsRunning(appName)
 			Eventually(cf.Cf("kibana-me-logs", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
-			v2url := "cf curl /v2/apps?q=name:kibana-" + serviceName + " | jq -r \".resources[].metadata.url\""
-			fmt.Printf("kibana url: %s", runCommandWithOutput(v2url))
-			/*credsURL := " | jq -r .environment_json.KIBANA_"
-			getUserCommand := exec.Command("cf curl", credsURL+"USERNAME")
-			err := getUserCommand.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-			kibanaUser := getUserCommand.*/
-			//Eventually(cf.Cf("curl", v2url, "| jq -r .resources[].metadata.url"), config.ScaledTimeout(timeout)).Should(Exit(0))
+			assetLogstashIsRunning()
 		})
 
 	})
