@@ -84,7 +84,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 
 	assetLogstashIsRunning := func() {
 		//Getting Kibana Creds
-		Eventually(cf.Cf("kibana-me-logs", appName), config.ScaledTimeout(3*time.Minute)).Should(Exit(0))
+		cf.Cf("kibana-me-logs", appName)
 		kibanaCmd := "cf curl /v2/apps?q=name:kibana-" + serviceName + " | jq -r \".resources[].metadata.url\""
 		kibanaV2URL := strings.TrimSpace(runCommandWithOutput(kibanaCmd))
 		usernameCmd := "cf curl " + kibanaV2URL + "/env | jq -r .environment_json.KIBANA_USERNAME"
@@ -121,7 +121,6 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 	AfterSuite(func() {
 		Eventually(cf.Cf("delete-space", testSpace, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
 		Eventually(cf.Cf("delete-org", testOrg, "-f"), config.ScaledTimeout(timeout)).Should(Exit(0))
-		Eventually(cf.Cf("uninstall-plugin", "kibana-me-logs"), config.ScaledTimeout(timeout)).Should(Exit(0))
 	})
 
 	Context("Example App Tests", func() {
