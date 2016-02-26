@@ -84,7 +84,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 
 	assetLogstashIsRunning := func() {
 		//Getting Kibana Creds
-		cf.Cf("kibana-me-logs", appName)
+		Eventually(cf.Cf("kibana-me-logs", appName), config.ScaledTimeout(timeout)).Should(Exit())
 		kibanaCmd := "cf curl /v2/apps?q=name:kibana-" + serviceName + " | jq -r \".resources[].metadata.url\""
 		kibanaV2URL := strings.TrimSpace(runCommandWithOutput(kibanaCmd))
 		usernameCmd := "cf curl " + kibanaV2URL + "/env | jq -r .environment_json.KIBANA_USERNAME"
@@ -93,7 +93,7 @@ var _ = Describe("CfLogstashSmokeTests", func() {
 		kibanaPass := strings.TrimSpace(runCommandWithOutput(passwordCmd))
 
 		kibanaURL := serviceName + "." + domain
-		kibanaCurlURL := fmt.Sprintf("%s:%s@%s", kibanaUser, kibanaPass, kibanaURL)
+		kibanaCurlURL := fmt.Sprintf("%s:%s@kibana-%s", kibanaUser, kibanaPass, kibanaURL)
 
 		Eventually(runner.Curl(kibanaCurlURL, "-k"), config.ScaledTimeout(timeout*3), time.Second*1).Should(Exit(0))
 		Eventually(runner.Curl(kibanaCurlURL+"/elasticsearch/_nodes", "-k"), config.ScaledTimeout(timeout*3), time.Second*1).Should(Exit(0))
